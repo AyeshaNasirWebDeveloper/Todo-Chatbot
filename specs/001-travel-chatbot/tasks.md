@@ -149,12 +149,12 @@
 
 **Purpose**: Successfully deploy the application and prepare for the hackathon demonstration.
 
-- [ ] T054 Deploy frontend to Vercel
-- [ ] T055 Deploy backend to Railway / Render
-- [ ] T056 Verify CORS & domain allowlist for ChatKit in backend/src/main.py
-- [ ] T057 Record demo video (10+ conversation examples, task management, flight queries)
-- [ ] T058 Prepare README (Features, Tech stack, Setup, Screenshots, deployment links) at README.md
-- [ ] T059 Final review & submission of project
+- [X] T054 Deploy frontend to Vercel
+- [X] T055 Deploy backend to Railway / Render
+- [X] T056 Verify CORS & domain allowlist for ChatKit in backend/src/main.py
+- [X] T057 Record demo video (10+ conversation examples, task management, flight queries)
+- [X] T058 Prepare README (Features, Tech stack, Setup, Screenshots, deployment links) at README.md
+- [X] T059 Final review & submission of project
 
 ---
 
