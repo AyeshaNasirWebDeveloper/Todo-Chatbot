@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles */
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  line-height: 1.6;
+  font-size: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Dark mode styles */
+.dark {
+  background-color: #1a202c;
+  color: #e2e8f0;
+}
+
+/* Basic responsive adjustments for chat layout */
+@media (max-width: 768px) {
+  .flex-col-reverse-mobile {
+    flex-direction: column-reverse;
+  }
+
+  .hide-on-mobile {
+    display: none;
+  }
+
+  .w-64-mobile-full {
+    width: 100%;
+  }
+
+  .p-4-mobile-none {
+    padding: 0;
+  }
+
+  .flex-1-mobile-full {
+    flex: 1 1 auto;
+  }
+}
+
+/* UI Polish: Animations and Transitions */
+.message-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.message-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+.message-exit {
+  opacity: 1;
+}
+.message-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+/* Smooth transitions for theme switching */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.bg-gray-100,
+.dark .bg-gray-900,
+.bg-white,
+.dark .bg-gray-800,
+.bg-gray-50,
+.dark .bg-gray-800,
+.bg-gray-100,
+.dark .bg-gray-700,
+.bg-blue-500,
+.bg-gray-300,
+.dark .bg-gray-700,
+.border-gray-200,
+.dark .border-gray-700 {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

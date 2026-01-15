@@ -1,0 +1,195 @@
+# OpenAPI Specification: Todo-Chat Chatbot API
+
+openapi: 3.0.0
+info:
+  title: AI-Powered Travel Assistant Chatbot API
+  version: 1.0.0
+paths:
+  /api/{user_id}/chat:
+    post:
+      summary: Send a message to the AI chatbot and get a response.
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: The user's message to the chatbot.
+                context:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: ["user", "assistant", "system"]
+                      content:
+                        type: string
+                  description: Optional conversation history for context.
+      responses:
+        '200':
+          description: AI chatbot response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    description: The AI's natural language response.
+                  updatedContext:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        role:
+                          type: string
+                          enum: ["user", "assistant", "system"]
+                        content:
+                          type: string
+                    description: Updated conversation history.
+        '400':
+          description: Invalid input.
+        '500':
+          description: Internal server error.
+
+  /api/tasks:
+    post:
+      summary: Add a new task for the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Task successfully added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input.
+    get:
+      summary: List all tasks for a user.
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the user.
+      responses:
+        '200':
+          description: A list of tasks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+  /api/tasks/{task_id}:
+    put:
+      summary: Update an existing task.
+      parameters:
+        - in: path
+          name: task_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the task to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found.
+    delete:
+      summary: Delete a task.
+      parameters:
+        - in: path
+          name: task_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the task to delete.
+      responses:
+        '204':
+          description: Task successfully deleted.
+        '404':
+          description: Task not found.
+
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        description:
+          type: string
+        status:
+          type: string
+          enum: ["pending", "in_progress", "completed"]
+          default: "pending"
+        priority:
+          type: string
+          enum: ["high", "medium", "low"]
+          nullable: true
+        userId:
+          type: string
+          format: uuid
+      required:
+        - description
+        - userId
+    TaskCreate:
+      type: object
+      properties:
+        description:
+          type: string
+        userId:
+          type: string
+          format: uuid
+      required:
+        - description
+        - userId
+    TaskUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: ["pending", "in_progress", "completed"]
+          nullable: true
+        priority:
+          type: string
+          enum: ["high", "medium", "low"]
+          nullable: true

@@ -1,0 +1,49 @@
+# Git Ignore for AI-Powered Travel Assistant (Phase III Hackathon)
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+*.js.map
+*.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp
+.pnp.js
+
+# Python / FastAPI
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+*.egg-info/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+
+# IDE-specific files
+.vscode/
+.idea/
+*.suo
+*.user
+*.usergroup
+
+# Docker
+.dockerignore
+
+# Misc
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
