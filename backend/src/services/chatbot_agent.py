@@ -7,7 +7,7 @@ from mcp_sdk.agent import Agent, AgentMessage, UserMessage, ToolMessage, LLMMess
 # from chatkit import ChatKit, Tool as ChatKitTool # Assuming ChatKit has a Tool type
 
 # Placeholder for Gemini integration if using directly via OpenAI SDK or similar
-# import google.generativeai as genai
+import google.generativeai as genai
 from src.mcp_tools.flight_tools import get_flight_information
 from src.mcp_tools.task_tools import add_task, list_tasks, update_task, delete_task, complete_task
 
@@ -26,8 +26,8 @@ TOOL_REGISTRY = {
 # if not OPENAI_API_KEY: raise ValueError("OPENAI_API_KEY environment variable not set.")
 
 # Configure Gemini API key if used directly
-# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-# if GEMINI_API_KEY: genai.configure(api_key=GEMINI_API_KEY)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY: genai.configure(api_key=GEMINI_API_KEY)
 
 class ChatbotAgent(Agent):
     def __init__(self, agent_name: str = "TravelAssistant"):

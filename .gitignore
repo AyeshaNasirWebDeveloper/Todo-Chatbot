@@ -47,3 +47,5 @@ dist/
 Thumbs.db
 *.tmp
 *.swp
+
+.vercel
