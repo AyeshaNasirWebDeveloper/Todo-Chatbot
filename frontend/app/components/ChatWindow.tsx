@@ -4,6 +4,8 @@ import { useState } from "react";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
 export default function ChatWindow() {
   const [messages, setMessages] = useState([
     { role: "assistant", content: "Hello! I’m your Todo AI Assistant. How can I help you today? 😊" },
@@ -12,8 +14,8 @@ export default function ChatWindow() {
   const sendMessage = async (text: string) => {
     const newMsg = { role: "user", content: text };
     setMessages((prev) => [...prev, newMsg]);
-
-    const res = await fetch("http://localhost:8000/api/ayesha/chat", {
+    const userId = 1;
+    const res = await fetch(`${API_BASE_URL}/api/chat/${userId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text }),

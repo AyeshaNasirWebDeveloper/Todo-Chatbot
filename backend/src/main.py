@@ -10,14 +10,16 @@ load_dotenv()
 
 from src.api.v1.auth import router as auth_router
 from src.api.v1.tasks import tasks_router
+from src.api.chat import chat_router 
 
 app = FastAPI()
 app.include_router(auth_router)
 app.include_router(tasks_router)
+app.include_router(chat_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*","FRONTEND_URL"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

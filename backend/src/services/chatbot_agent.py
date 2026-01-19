@@ -1,95 +1,306 @@
+from __future__ import annotations
 import os
-import json
 from typing import List, Dict, Any, Optional
-from mcp_sdk.agent import Agent, AgentMessage, UserMessage, ToolMessage, LLMMessage
-# For OpenAI Agents SDK integration
-# from openai import OpenAI
-# from chatkit import ChatKit, Tool as ChatKitTool # Assuming ChatKit has a Tool type
+from dataclasses import dataclass
+from pydantic import BaseModel
+from dotenv import load_dotenv
 
-# Placeholder for Gemini integration if using directly via OpenAI SDK or similar
-import google.generativeai as genai
-from src.mcp_tools.flight_tools import get_flight_information
-from src.mcp_tools.task_tools import add_task, list_tasks, update_task, delete_task, complete_task
+load_dotenv()
 
-# Configure a simple in-memory tool registry for demonstration
-TOOL_REGISTRY = {
-    "get_flight_information": get_flight_information,
-    "add_task": add_task,
-    "list_tasks": list_tasks,
-    "update_task": update_task,
-    "delete_task": delete_task,
-    "complete_task": complete_task
-}
+# Import original package
+try:
+    from agents import (
+        Agent,
+        Runner,
+        RunConfig,
+        OpenAIChatCompletionsModel,
+        AsyncOpenAI,
+        RunContextWrapper,
+        function_tool,
+        input_guardrail,
+        dynamic_instruction,
+        ModelSettings,
+    )
 
-# Configure OpenAI API key from environment variables
-# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-# if not OPENAI_API_KEY: raise ValueError("OPENAI_API_KEY environment variable not set.")
+except Exception:
+    # fallback lightweight version (your previous fallback code)
+    from typing import Callable
 
-# Configure Gemini API key if used directly
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if GEMINI_API_KEY: genai.configure(api_key=GEMINI_API_KEY)
+    class RunContextWrapper(dict):
+        pass
 
-class ChatbotAgent(Agent):
-    def __init__(self, agent_name: str = "TravelAssistant"):
-        super().__init__(agent_name)
+    class ModelSettings:
+        def __init__(self, model: str, temperature=0.0, client_options=None):
+            self.model = model
+            self.temperature = temperature
+            self.client_options = client_options or {}
 
-        # Initialize OpenAI client with configured API key
-        # self.openai_client = OpenAI(api_key=OPENAI_API_KEY)
+    class Agent:
+        def __init__(
+            self,
+            name: str,
+            instructions="",
+            tools=None,
+            model_settings=None,
+            input_guardrails=None,
+            dynamic_instructions=None,
+        ):
+            self.name = name
+            self.instructions = instructions
+            self.tools = tools or []
+            self.model_settings = model_settings
+            self.input_guardrails = input_guardrails or []
+            self.dynamic_instructions = dynamic_instructions or []
 
-        # Initialize ChatKit with OpenAI client and tools
-        # self.chatkit = ChatKit(client=self.openai_client, tools=[get_flight_information, add_task, list_tasks, update_task, delete_task, complete_task])
+    class Runner:
+        @staticmethod
+        def run(agent, message, context=None):
+            return _mock_llm_router(agent, message, context or {})
 
-        # Register MCP tools for direct use (or for the LLM agent to call)
-        self.add_tool(get_flight_information)
-        self.add_tool(add_task)
-        self.add_tool(list_tasks)
-        self.add_tool(update_task)
-        self.add_tool(delete_task)
-        self.add_tool(complete_task)
+        @staticmethod
+        def run_sync(agent, message, context=None):
+            return Runner.run(agent, message, context)
 
-    async def process_message(self, user_message: str) -> str:
-        # For simplicity, a direct tool call if keywords are present
-        # If keywords are present, call the appropriate tool
-        if "add task" in user_message.lower():
-            title = user_message.lower().split("add task ")[1]
-            tool_output = add_task(title=title)
-            return json.dumps(tool_output)
-        elif "list tasks" in user_message.lower():
-            tool_output = list_tasks()
-            return json.dumps(tool_output)
-        elif "update task" in user_message.lower():
-            parts = user_message.lower().split("update task ")[1].split(" with ")
-            task_id = int(parts[0])
-            # This is a very simplistic parsing and would need a robust NLP solution
-            # For now, assuming "update task <id> with title <new_title>" or "completed <true/false>"
-            if "title" in parts[1]:
-                title = parts[1].split("title ")[1]
-                tool_output = update_task(task_id=task_id, title=title)
-            elif "completed" in parts[1]:
-                completed = "true" in parts[1]
-                tool_output = update_task(task_id=task_id, completed=completed)
-            else:
-                return json.dumps({"status": "error", "message": "Could not parse update task command."})
-            return json.dumps(tool_output)
-        elif "delete task" in user_message.lower():
-            task_id = int(user_message.lower().split("delete task ")[1])
-            tool_output = delete_task(task_id=task_id)
-            return json.dumps(tool_output)
-        elif "complete task" in user_message.lower():
-            task_id = int(user_message.lower().split("complete task ")[1])
-            tool_output = complete_task(task_id=task_id)
-            return json.dumps(tool_output)
-        elif "flight" in user_message.lower():
-            tool_output = get_flight_information(user_message)
-            return json.dumps(tool_output)
+    def function_tool(fn: Callable):
+        fn._is_tool = True
+        return fn
 
-        # In a full integration, you would use ChatKit/OpenAI Agent to process the message
-        # For example:
-        # response = await self.chatkit.process_user_message(user_message)
-        # return response.text
+    def input_guardrail(fn: Callable):
+        fn._is_guardrail = True
+        return fn
 
-        return f"Hello! How can I help you with your travel plans? I can currently assist with flight information and managing your todo list. (OpenAI Agents SDK and ChatKit + Gemini key configured in backend/src/services/chatbot_agent.py - actual LLM processing would be here). Try asking something like: 'find me a flight from London to Paris' or 'add task buy groceries'."
+    def dynamic_instruction(fn: Callable):
+        fn._is_dynamic_instruction = True
+        return fn
 
-# This would typically be initialized with a proper LLM, e.g., OpenAI/Gemini
-def get_chatbot_agent() -> ChatbotAgent:
-    return ChatbotAgent()
+
+# =============================
+# USER CONTEXT
+# =============================
+class UserContext(BaseModel):
+    name: str
+    user_id: str  # reference to DB user
+
+
+# =============================
+# YOUR TODO TASK MOCK DATABASE
+# =============================
+TASK_DB: Dict[str, List[Dict[str, Any]]] = {}  # user_id → tasks list
+
+
+def get_user_tasks(uid: str):
+    return TASK_DB.setdefault(uid, [])
+
+
+# =============================
+# GUARDRAIL
+# =============================
+INTENTS = [
+    "task",
+    "todo",
+    "add",
+    "create",
+    "update",
+    "delete",
+    "show",
+    "list",
+    "search",
+    "reminder",
+    "complete",
+    "pending",
+]
+
+
+@input_guardrail
+def guardrail_input(ctx: RunContextWrapper, message: str) -> Optional[str]:
+    lower = message.lower()
+
+    if any(keyword in lower for keyword in INTENTS):
+        return None  
+
+    if any(g in lower for g in ["hi", "hello", "salam", "hey", "assalam"]):
+        return None
+
+    return "I can only help with tasks, todos, reminders, and task management."
+
+
+# =============================
+# TOOL FUNCTIONS
+# =============================
+
+@function_tool
+def create_task(user_id: str, title: str, due: Optional[str] = None):
+    tasks = get_user_tasks(user_id)
+    new_task = {
+        "id": len(tasks) + 1,
+        "title": title,
+        "due": due,
+        "completed": False,
+    }
+    tasks.append(new_task)
+    return {"message": "Task created", "task": new_task}
+
+
+@function_tool
+def list_tasks(user_id: str):
+    return {"tasks": get_user_tasks(user_id)}
+
+
+@function_tool
+def update_task(user_id: str, task_id: int, completed: Optional[bool] = None, title: Optional[str] = None):
+    tasks = get_user_tasks(user_id)
+    for t in tasks:
+        if t["id"] == task_id:
+            if completed is not None:
+                t["completed"] = completed
+            if title:
+                t["title"] = title
+            return {"message": "Task updated", "task": t}
+    return {"error": "Task not found"}
+
+
+@function_tool
+def delete_task(user_id: str, task_id: int):
+    tasks = get_user_tasks(user_id)
+    for t in tasks:
+        if t["id"] == task_id:
+            tasks.remove(t)
+            return {"message": "Task deleted"}
+    return {"error": "Task not found"}
+
+
+@function_tool
+def search_tasks(user_id: str, query: str):
+    tasks = get_user_tasks(user_id)
+    results = [t for t in tasks if query.lower() in t["title"].lower()]
+    return {"results": results}
+
+
+@function_tool
+def set_reminder(user_id: str, task_id: int, when: str):
+    return {"message": f"Reminder set for task {task_id} at {when}"}
+
+
+# =============================
+# DYNAMIC PERSONALIZATION
+# =============================
+@dynamic_instruction
+def personalize(ctx: RunContextWrapper):
+    user: UserContext = ctx.get("user")
+    return f"Always call the user by name ({user.name}) and keep responses short."
+
+
+# =============================
+# MODEL SETTINGS
+# =============================
+MODEL_SETTINGS = ModelSettings(
+    model="gemini-2.0-flash",
+    temperature=0.1,
+    client_options={
+        "api_key": os.environ.get("GEMINI_API_KEY"),
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+    },
+)
+
+
+# =============================
+# AGENT INSTRUCTIONS
+# =============================
+TODO_SYSTEM_INSTRUCTIONS = """
+You are an AI Todo Assistant.
+You help users manage tasks. You can:
+- Create tasks
+- List tasks
+- Update tasks
+- Delete tasks
+- Search tasks
+- Manage reminders
+
+Use tools properly. Ask for task IDs when needed.
+Keep replies short and helpful.
+"""
+
+
+todo_agent = Agent(
+    name="todo-assistant",
+    instructions=TODO_SYSTEM_INSTRUCTIONS,
+    tools=[create_task, list_tasks, update_task, delete_task, search_tasks, set_reminder],
+    model_settings=MODEL_SETTINGS,
+    input_guardrails=[guardrail_input],
+    dynamic_instructions=[personalize],
+)
+
+
+# =============================
+# MOCK ROUTER (DRY RUN)
+# =============================
+DRY_RUN = True
+
+
+@dataclass
+class MockResult:
+    content: str
+    tool_calls: List[Dict[str, Any]]
+
+
+def _mock_llm_router(agent: Agent, message: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+    user: UserContext = ctx.get("user")
+    name = user.name
+    uid = user.user_id
+    lower = message.lower()
+
+    # greetings
+    if any(g in lower for g in ["hi", "hello", "salam", "assalam", "hey"]):
+        return {"role": "assistant", "content": f"Hi {name}! How can I help with your tasks?"}
+
+    # create task
+    if "add" in lower or "create" in lower:
+        title = message.replace("add", "").replace("create", "").strip()
+        res = create_task(uid, title)
+        return {"role": "assistant", "content": f"{name}, your task is added: {res['task']['title']}"}
+
+    # list tasks
+    if "list" in lower or "show" in lower:
+        tasks = list_tasks(uid)["tasks"]
+        if not tasks:
+            return {"role": "assistant", "content": f"{name}, you have no tasks yet."}
+        text = "\n".join([f"{t['id']}. {t['title']} ({'Done' if t['completed'] else 'Pending'})" for t in tasks])
+        return {"role": "assistant", "content": text}
+
+    # search
+    if "search" in lower or "find" in lower:
+        query = message.replace("search", "").replace("find", "").strip()
+        results = search_tasks(uid, query)["results"]
+        if not results:
+            return {"role": "assistant", "content": f"No tasks found for '{query}'."}
+        return {"role": "assistant", "content": ", ".join([t['title'] for t in results])}
+
+    return {"role": "assistant", "content": "I can help with creating, listing, updating, deleting and searching your tasks!"}
+
+# ============================================================
+# ChatbotAgent Wrapper (for FastAPI import)
+# ============================================================
+
+class ChatbotAgent:
+    """Simple wrapper class so FastAPI can call the agent cleanly."""
+    def __init__(self):
+        self.agent = todo_agent  # <-- from your todo agent code
+
+    def run(self, message: str, user_id: str, name: str):
+        ctx = RunContextWrapper({
+            "user": UserContext(name=name, user_id=user_id)
+        })
+        response = Runner.run_sync(self.agent, message, ctx)
+        return response["content"]
+
+
+# ============================================================
+# Factory function (required by your FastAPI routes)
+# ============================================================
+_chatbot_instance = None
+
+def get_chatbot_agent():
+    global _chatbot_instance
+    if _chatbot_instance is None:
+        _chatbot_instance = ChatbotAgent()
+    return _chatbot_instance

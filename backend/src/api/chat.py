@@ -8,7 +8,7 @@ from src.api.v1.auth import get_current_user
 
 chat_router = APIRouter()
 
-@chat_router.post("/chat")
+@chat_router.post("/chat/{user_id}")
 async def chat_with_bot(
     user_message: Dict[str, str],
     user_id: int = Path(..., description="The ID of the user"), # Explicitly define Path for user_id
