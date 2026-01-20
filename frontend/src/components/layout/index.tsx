@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import ThemeSwitcher from '../../../app/ThemeSwitcher';
+import ThemeSwitcher from './ThemeSwitcher';
 
 interface LayoutProps {
   children: React.ReactNode;
