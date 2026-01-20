@@ -1,48 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import ChatMessage from "./ChatMessage";
-import ChatInput from "./ChatInput";
+import React, { useRef, useEffect } from "react";
+import MessageBubble from "./MessageBubble";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+interface Message {
+  id: number;
+  content: string;
+  role: "user" | "bot";
+  type?: "text" | "tool_feedback";
+  toolOutput?: any;
+}
 
-export default function ChatWindow() {
-  const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hello! I’m your Todo AI Assistant. How can I help you today? 😊" },
-  ]);
+interface ChatWindowProps {
+  messages?: Message[]; // <-- make optional
+}
 
-  const sendMessage = async (text: string) => {
-    const newMsg = { role: "user", content: text };
-    setMessages((prev) => [...prev, newMsg]);
-    const userId = 1;
-    const res = await fetch(`${API_BASE_URL}/api/chat/${userId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
-    });
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages = [] }) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const data = await res.json();
-
-    const botReply = { role: "assistant", content: data.response };
-    setMessages((prev) => [...prev, botReply]);
-  };
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   return (
-    <div className="flex flex-col h-full">
-
-      <div className="px-6 py-4 border-b bg-white dark:bg-gray-800 shadow">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-          Todo AI Assistant
-        </h2>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 dark:bg-gray-900">
-        {messages.map((msg, index) => (
-          <ChatMessage key={index} role={msg.role} content={msg.content} />
+    <div className="flex-1 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-800 rounded-lg shadow-inner">
+      <div className="flex flex-col space-y-2">
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
         ))}
+        <div ref={messagesEndRef} />
       </div>
-
-      <ChatInput onSend={sendMessage} />
     </div>
   );
-}
+};
+
+export default ChatWindow;

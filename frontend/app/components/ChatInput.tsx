@@ -1,32 +1,39 @@
-"use client";
+import React, { useState } from 'react';
 
-import { useState } from "react";
+interface ChatInputProps {
+  onSendMessage: (message: string) => void;
+}
 
-export default function ChatInput({ onSend }: any) {
-  const [text, setText] = useState("");
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
+  const [message, setMessage] = useState('');
 
-  const handleSend = () => {
-    if (!text.trim()) return;
-    onSend(text);
-    setText("");
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (message.trim()) {
+      onSendMessage(message);
+      setMessage('');
+    }
   };
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-800 border-t flex items-center gap-3">
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        className="flex-1 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white outline-none"
-        placeholder="Type your message…"
-      />
-
-      <button
-        onClick={handleSend}
-        className="px-5 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-      >
-        Send
-      </button>
-    </div>
+    <form onSubmit={handleSubmit} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex rounded-lg shadow-md overflow-hidden">
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Type your message..."
+          className="flex-1 p-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none"
+        />
+        <button
+          type="submit"
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors duration-200"
+        >
+          Send
+        </button>
+      </div>
+    </form>
   );
-}
+};
+
+export default ChatInput;

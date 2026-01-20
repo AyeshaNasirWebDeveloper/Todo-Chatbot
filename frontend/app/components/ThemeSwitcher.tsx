@@ -1,42 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { FaSun, FaMoon } from 'react-icons/fa';
+"use client";
 
-const ThemeSwitcher: React.FC = () => {
-  const [theme, setTheme] = useState('light');
+import React, { useEffect, useState } from "react";
+import { FaSun, FaMoon } from "react-icons/fa";
+
+export default function ThemeSwitcher() {
+  const [theme, setTheme] = useState("light");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else if (prefersDark) {
-      setTheme('dark');
-    } else {
-      setTheme('light');
+    const saved = localStorage.getItem("theme");
+    if (saved) {
+      setTheme(saved);
+      document.documentElement.classList.add(saved);
     }
   }, []);
 
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+    const newTheme = theme === "light" ? "dark" : "light";
+
+    document.documentElement.classList.remove(theme);
+    document.documentElement.classList.add(newTheme);
+
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
   };
 
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+      className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 
+                 text-gray-800 dark:text-gray-200 shadow-lg"
     >
-      {theme === 'light' ? <FaMoon size={20} /> : <FaSun size={20} />}
+      {theme === "light" ? <FaMoon size={20} /> : <FaSun size={20} />}
     </button>
   );
-};
-
-export default ThemeSwitcher;
+}

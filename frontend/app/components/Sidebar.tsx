@@ -8,13 +8,11 @@ export default function Sidebar() {
 
   return (
     <div className="w-64 bg-white dark:bg-gray-800 shadow-xl p-6 flex flex-col justify-between">
-      {/* Logo */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
           Todo <span className="text-blue-600">AI</span>
         </h1>
 
-        {/* Navigation */}
         <div className="space-y-3">
           <button
             className={`w-full px-3 py-2 text-left rounded-lg transition ${
@@ -39,7 +37,6 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Theme switch */}
       <div className="mt-10">
         <ThemeSwitcher />
       </div>
