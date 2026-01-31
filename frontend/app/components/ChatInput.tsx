@@ -1,39 +1,50 @@
-import React, { useState } from 'react';
+"use client";
 
-interface ChatInputProps {
-  onSendMessage: (message: string) => void;
-}
+import { useState } from "react";
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
-  const [message, setMessage] = useState('');
+const API_BASE_URL = "http://localhost:8000/api";
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim()) {
-      onSendMessage(message);
-      setMessage('');
-    }
+export default function ChatInput({ setMessages }: any) {
+  const [text, setText] = useState("");
+
+  const sendMessage = async () => {
+    if (!text.trim()) return;
+
+    setMessages((prev: any[]) => [
+      ...prev,
+      { id: Date.now(), content: text, role: "user" },
+    ]);
+
+    setText("");
+
+    const res = await fetch(`${API_BASE_URL}/chat/{user_id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer YOUR_TOKEN_HERE`,
+      },
+      body: JSON.stringify({ message: text }),
+    });
+
+    const data = await res.json();
+
+    setMessages((prev: any[]) => [
+      ...prev,
+      { id: Date.now() + 1, content: data.response, role: "bot" },
+    ]);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-      <div className="flex rounded-lg shadow-md overflow-hidden">
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type your message..."
-          className="flex-1 p-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none"
-        />
-        <button
-          type="submit"
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors duration-200"
-        >
-          Send
-        </button>
-      </div>
-    </form>
+    <div className="p-3 border-t flex gap-2">
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="flex-1 border rounded px-3 py-2"
+        placeholder="Ask me anything..."
+      />
+      <button onClick={sendMessage} className="bg-blue-600 text-white px-4 rounded">
+        Send
+      </button>
+    </div>
   );
-};
-
-export default ChatInput;
+}
