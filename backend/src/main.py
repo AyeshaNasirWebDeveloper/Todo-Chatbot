@@ -16,7 +16,6 @@ app = FastAPI()
 app.include_router(auth_router)
 app.include_router(tasks_router)
 app.include_router(chat_router)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -32,4 +31,4 @@ def on_startup():
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to Ayesha's Todo App Phase II Backend!"}
+    return {"message": "Welcome to Ayesha's Todo App Backend!"}

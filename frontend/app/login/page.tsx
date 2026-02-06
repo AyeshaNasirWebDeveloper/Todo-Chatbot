@@ -20,7 +20,8 @@ export default function LoginPage() {
       console.log('Login successful:', response);
 
       // TODO: store token securely (cookie / context)
-      router.push('/tasks');
+      // router.push('/tasks');
+      router.push('/');
     } catch (error: unknown) {
       if (error instanceof Error) {
         alert(error.message);
