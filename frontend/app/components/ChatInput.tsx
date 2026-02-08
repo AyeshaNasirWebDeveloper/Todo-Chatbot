@@ -2,13 +2,21 @@
 
 import { useState } from "react";
 
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = "http://localhost:8000";
 
 export default function ChatInput({ setMessages }: any) {
   const [text, setText] = useState("");
 
   const sendMessage = async () => {
     if (!text.trim()) return;
+
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+
+    if (!token || !userId) {
+      alert("Please login first");
+      return;
+    }
 
     setMessages((prev: any[]) => [
       ...prev,
@@ -17,11 +25,11 @@ export default function ChatInput({ setMessages }: any) {
 
     setText("");
 
-    const res = await fetch(`${API_BASE_URL}/chat/{user_id}`, {
+    const res = await fetch(`${API_BASE_URL}/chat/${userId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer YOUR_TOKEN_HERE`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ message: text }),
     });
