@@ -1,6 +1,5 @@
 import React from 'react';
-// import Header from './Header';
-// import Sidebar from './Sidebar';
+import Header from './Header';
 import ThemeSwitcher from './ThemeSwitcher';
 
 interface LayoutProps {
@@ -10,7 +9,6 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
-      <Sidebar />
       <div className="flex flex-col flex-1">
         <Header />
         <main className="flex-1 overflow-y-auto p-4">
@@ -45,11 +43,11 @@ const Sidebar: React.FC = () => {
   );
 };
 
-const Header: React.FC = () => {
-  return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm p-4 flex items-center justify-between">
-      <h1 className="text-xl font-semibold">Chat Window</h1>
-      {/* Future: User profile/settings */}
-    </header>
-  );
-};
+// const Header: React.FC = () => {
+//   return (
+//     <header className="bg-white dark:bg-gray-800 shadow-sm p-4 flex items-center justify-between">
+//       <h1 className="text-xl font-semibold">Chat Window</h1>
+//       {/* Future: User profile/settings */}
+//     </header>
+//   );
+// };
