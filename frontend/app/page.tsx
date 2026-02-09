@@ -8,8 +8,15 @@ export default function HomePage() {
   const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
+  const loadUser = () => {
     setUserName(localStorage.getItem("user_name"));
-  }, []);
+  };
+
+  loadUser();
+  window.addEventListener("storage", loadUser);
+
+  return () => window.removeEventListener("storage", loadUser);
+}, []);
 
   const logout = () => {
     localStorage.clear();

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "./Sidebar";
 import ChatWindow from "./ChatWindow";
 import ChatInput from "./ChatInput";
 
@@ -28,7 +27,7 @@ export default function ChatWidget() {
       {/* Chat Window */}
       {open && (
         <div className="fixed bottom-20 right-6 w-[380px] h-[520px] bg-white dark:bg-gray-900 shadow-2xl rounded-xl flex overflow-hidden z-50">
-          <Sidebar />
+          {/* <Sidebar /> */}
           <div className="flex flex-col flex-1">
             <ChatWindow messages={messages} />
             <ChatInput setMessages={setMessages} />

@@ -38,7 +38,13 @@ async def chat_with_bot(
 
     # Process message with chatbot agent
     # The chatbot agent itself will handle tool calls and response generation
-    agent_response_content = await chatbot_agent.process_message(text_message)
+    # agent_response_content = await chatbot_agent.process_message(text_message)
+    # agent_response_content = chatbot_agent.get_response(text_message)
+    agent_response_content = chatbot_agent.run(
+    message=text_message,
+    user_id=str(current_user.id),
+    name=current_user.email
+)
 
     # Add bot response to conversation history
     conversation_manager.add_message_to_conversation(

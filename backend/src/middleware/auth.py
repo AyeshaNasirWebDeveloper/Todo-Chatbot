@@ -22,17 +22,21 @@ security = HTTPBearer()
 # 1️⃣ Decode & verify JWT
 def verify_token(
     credentials: HTTPAuthorizationCredentials = Security(security),
-) -> str:
+) -> int:
     token = credentials.credentials
+
     try:
         payload = jwt.decode(token, BETTER_AUTH_SECRET, algorithms=[ALGORITHM])
-        user_id: str | None = int(payload.get("sub"))
+        user_id = payload.get("sub")
+
         if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
             )
-        return user_id
+
+        return int(user_id)
+
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -43,7 +47,7 @@ def verify_token(
 # 2️⃣ Get current user from DB
 def get_current_user(
     session: Session = Depends(get_session),
-    user_id: str = Depends(verify_token),
+    user_id: int = Depends(verify_token),
 ) -> User:
     user = session.exec(select(User).where(User.id == user_id)).first()
     if not user:
