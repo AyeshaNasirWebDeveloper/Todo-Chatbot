@@ -1,6 +1,6 @@
 import React from 'react';
-import Header from './Header';
-import Sidebar from './Sidebar';
+// import Header from './Header';
+// import Sidebar from './Sidebar';
 import ThemeSwitcher from './ThemeSwitcher';
 
 interface LayoutProps {
